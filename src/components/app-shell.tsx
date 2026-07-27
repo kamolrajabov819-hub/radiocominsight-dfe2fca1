@@ -5,6 +5,7 @@ import {
   BarChart3,
   Facebook,
   Globe2,
+  Handshake,
   Instagram,
   LayoutDashboard,
   Menu,
@@ -22,7 +23,10 @@ import { LanguageToggle, useI18n, type Key } from "@/lib/i18n";
 const NAV: { group: Key; items: { to: string; label: Key; icon: typeof Target }[] }[] = [
   {
     group: "nav.overview",
-    items: [{ to: "/", label: "nav.crossChannel", icon: LayoutDashboard }],
+    items: [
+      { to: "/", label: "nav.crossChannel", icon: LayoutDashboard },
+      { to: "/sales", label: "nav.sales", icon: Handshake },
+    ],
   },
   {
     group: "nav.paid",

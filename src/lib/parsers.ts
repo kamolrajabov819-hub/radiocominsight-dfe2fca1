@@ -574,6 +574,110 @@ export const GA_INTENT_LABELS: Record<string, string> = {
   T: "Transactional",
 };
 
+
+/* ------------------------------------------------------------------ *
+ * Sales
+ *
+ * A CRM pipeline export (Russian headers). Two stages are present:
+ * "Договор" (contract issued, still open) and "Выиграна" (won). The tab
+ * also carries per-stage subtotal rows such as "Договор (387)" and a
+ * trailing stray row; both lack a currency, which is what separates a
+ * real deal from bookkeeping.
+ *
+ * `Источник` is the acquisition source, and it is the column that ties
+ * revenue back to the marketing channels on the rest of the dashboard —
+ * OLX, Radiocom.uz and Instagram all appear in it.
+ * ------------------------------------------------------------------ */
+
+export type SaleOutcome = "won" | "open" | "lost";
+
+export type SaleRow = {
+  stage: string;
+  outcome: SaleOutcome;
+  /** Verbatim from the sheet; "" when the cell is blank. */
+  source: string;
+  company: string;
+  opportunity: string;
+  /** Expected revenue, in UZS. */
+  revenue: number;
+  manager: string;
+  tag: string;
+  probabilityPct: number;
+};
+
+const SALES_FALLBACK = {
+  stage: 0, probability: 1, currency: 3, outcome: 6,
+  opportunity: 8, revenue: 9, company: 12, source: 13, tag: 14, manager: 28,
+};
+
+function saleOutcome(v: string): SaleOutcome {
+  const s = v.toLowerCase();
+  if (s.includes("выигр") || s.includes("won")) return "won";
+  if (s.includes("проигр") || s.includes("потер") || s.includes("lost")) return "lost";
+  return "open";
+}
+
+export function parseSales(rows: SheetRows): SaleRow[] {
+  if (!rows.length) return [];
+  const map = headerMap(rows[0] ?? []);
+  const at = (r: Cell[], names: string[], fallback: number) => r[col(map, names, fallback)];
+
+  const out: SaleRow[] = [];
+  for (let i = 1; i < rows.length; i++) {
+    const r = rows[i];
+    if (!r || !r.length) continue;
+    // Subtotal and stray rows carry no currency.
+    if (!toStr(at(r, ["валюта", "currency"], SALES_FALLBACK.currency))) continue;
+
+    const probability = toNum(at(r, ["вероятность", "probability"], SALES_FALLBACK.probability));
+    out.push({
+      stage: toStr(at(r, ["этап", "stage"], SALES_FALLBACK.stage)),
+      outcome: saleOutcome(toStr(at(r, ["выиграно потеряно", "won lost"], SALES_FALLBACK.outcome))),
+      source: toStr(at(r, ["источник", "source"], SALES_FALLBACK.source)),
+      company: toStr(at(r, ["название компании", "company"], SALES_FALLBACK.company)),
+      opportunity: toStr(at(r, ["возможность", "opportunity"], SALES_FALLBACK.opportunity)),
+      revenue: toNum(at(r, ["ожидаемый доход", "expected revenue"], SALES_FALLBACK.revenue)),
+      manager: toStr(at(r, ["менеджер по продажам", "salesperson"], SALES_FALLBACK.manager)),
+      tag: toStr(at(r, ["теги", "tags"], SALES_FALLBACK.tag)),
+      // Stored as a 0-1 fraction on subtotal rows and 0-100 on deal rows.
+      probabilityPct: probability <= 1 ? probability * 100 : probability,
+    });
+  }
+  return out;
+}
+
+/** Per-source roll-up. `share` fields are percentages of the slice passed in. */
+export type SourceStat = {
+  source: string;
+  deals: number;
+  revenue: number;
+  dealSharePct: number;
+  revenueSharePct: number;
+};
+
+export function salesBySource(rows: SaleRow[]): SourceStat[] {
+  const agg = new Map<string, { deals: number; revenue: number }>();
+  for (const r of rows) {
+    const key = r.source || UNSPECIFIED_SOURCE;
+    const cur = agg.get(key) ?? { deals: 0, revenue: 0 };
+    agg.set(key, { deals: cur.deals + 1, revenue: cur.revenue + r.revenue });
+  }
+  const totalDeals = rows.length;
+  const totalRevenue = rows.reduce((a, r) => a + r.revenue, 0);
+  return Array.from(agg.entries())
+    .map(([source, v]) => ({
+      source,
+      deals: v.deals,
+      revenue: v.revenue,
+      dealSharePct: totalDeals > 0 ? (v.deals / totalDeals) * 100 : 0,
+      revenueSharePct: totalRevenue > 0 ? (v.revenue / totalRevenue) * 100 : 0,
+    }))
+    .sort((a, b) => b.deals - a.deals);
+}
+
+/** Sentinel for a blank source cell; translated at render time. */
+export const UNSPECIFIED_SOURCE = "__unspecified__";
+
 /* ------------------------------------------------------------------ *
  * Assembly
  * ------------------------------------------------------------------ */
@@ -585,6 +689,7 @@ export type AllData = {
   facebook: OrganicPeriod[];
   olx: OlxProduct[];
   ga: { metrics: GaMetric[]; keywords: GaKeyword[] };
+  sales: SaleRow[];
 };
 
 export function parseAll(raw: Partial<Record<TabName, SheetRows>>): AllData {
@@ -595,6 +700,7 @@ export function parseAll(raw: Partial<Record<TabName, SheetRows>>): AllData {
     facebook: parseOrganic(raw["Facebook Organic"] ?? []),
     olx: parseOlx(raw["OLX"] ?? []),
     ga: parseGoogleAnalytics(raw["Google Analytics"] ?? []),
+    sales: parseSales(raw["Sales"] ?? []),
   };
 }
 

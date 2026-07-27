@@ -52,6 +52,51 @@ export const CHANNEL_COLOR: Record<string, string> = {
   "Display & other": SERIES[3],
 };
 
+/**
+ * CRM deal sources that also exist as channels elsewhere in the dashboard
+ * keep that channel's hue, so "OLX" is the same colour on the sales page as
+ * it is on the cross-channel overview.
+ */
+const SOURCE_COLOR: Record<string, string> = {
+  OLX: CHANNEL_COLOR.OLX,
+  Instagram: CHANNEL_COLOR.Instagram,
+  "Radiocom.uz": CHANNEL_COLOR["Google Analytics"],
+  Radiocomnet: CHANNEL_COLOR["Google Analytics"],
+};
+
+/**
+ * Colours a ranked list of sources: the channel-bound ones first, then the
+ * remaining palette slots in rank order. Keyed by the raw CRM name so the
+ * colour survives a language switch.
+ */
+export function sourcePalette(sources: string[]): Record<string, string> {
+  const out: Record<string, string> = {};
+  const taken = new Set<string>();
+  sources.forEach((s) => {
+    const fixed = SOURCE_COLOR[s];
+    if (fixed) {
+      out[s] = fixed;
+      taken.add(fixed);
+    }
+  });
+  let next = 0;
+  sources.forEach((s) => {
+    if (out[s]) return;
+    while (next < SERIES.length && taken.has(SERIES[next])) next++;
+    const color = SERIES[next % SERIES.length];
+    out[s] = color;
+    taken.add(color);
+    next++;
+  });
+  return out;
+}
+
+/**
+ * Neutral hue for a rolled-up "Other (n)" bucket. Deliberately outside the
+ * series palette so the tail never wears the same colour as a real category.
+ */
+export const OTHER_COLOR = "var(--color-muted-foreground)";
+
 export const surfaceStroke = "var(--color-surface)";
 
 /* ------------------------------------------------------------------ *

@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { Link, createFileRoute } from "@tanstack/react-router";
 import { useMemo } from "react";
 import {
   Bar,
@@ -22,15 +22,19 @@ import {
   FunnelSteps,
   Grid,
   HBarRanking,
+  OTHER_COLOR,
   PartToWhole,
   SERIES,
+  ShareBar,
   lineCursor,
+  sourcePalette,
   surfaceStroke,
   xAxisProps,
   yAxisProps,
 } from "@/components/charts";
 import { useData } from "@/lib/data-context";
 import { useI18n } from "@/lib/i18n";
+import { salesBySource } from "@/lib/parsers";
 import {
   cpc,
   cpl,
@@ -42,6 +46,7 @@ import {
   fmtInt,
   fmtMoney,
   fmtPct,
+  fmtSom,
   sumGoogle,
   sumMeta,
 } from "@/lib/metrics";
@@ -559,6 +564,127 @@ function Overview() {
           </ul>
         </Panel>
       </div>
+
+      <SalesSourceSection />
     </AppShell>
+  );
+}
+
+/** Below this a win rate is one deal flipping between 0% and 100%. */
+const MIN_DEALS_FOR_RATE = 5;
+
+/**
+ * The revenue end of the dashboard. The Sales tab has no date column — it is
+ * the whole 2026 pipeline — so this block deliberately ignores the quarter
+ * filter and says so.
+ */
+function SalesSourceSection() {
+  const { data } = useData();
+  const { t, tSource } = useI18n();
+
+  const won = useMemo(() => data.sales.filter((s) => s.outcome === "won"), [data.sales]);
+  const wonBySource = useMemo(() => salesBySource(won), [won]);
+  const allBySource = useMemo(() => salesBySource(data.sales), [data.sales]);
+  const palette = useMemo(() => sourcePalette(wonBySource.map((s) => s.source)), [wonBySource]);
+
+  const slices = useMemo(() => {
+    const head = wonBySource.slice(0, 5);
+    const tail = wonBySource.slice(5);
+    const out = head.map((s) => ({
+      name: tSource(s.source),
+      value: s.deals,
+      color: palette[s.source] ?? SERIES[0],
+    }));
+    if (tail.length) {
+      out.push({
+        name: t("sales.other", { n: tail.length }),
+        value: tail.reduce((a, s) => a + s.deals, 0),
+        color: OTHER_COLOR,
+      });
+    }
+    return out.filter((s) => s.value > 0);
+  }, [wonBySource, palette, t, tSource]);
+
+  const winRates = useMemo(() => {
+    const wonCount = new Map(wonBySource.map((s) => [s.source, s.deals]));
+    return allBySource
+      .filter((s) => s.deals >= MIN_DEALS_FOR_RATE)
+      .map((s) => ({
+        source: s.source,
+        label: tSource(s.source),
+        rate: ((wonCount.get(s.source) ?? 0) / s.deals) * 100,
+        deals: s.deals,
+      }))
+      .sort((a, b) => b.rate - a.rate);
+  }, [allBySource, wonBySource, tSource]);
+
+  if (!data.sales.length) return null;
+
+  const top = wonBySource[0];
+  const wonRevenue = won.reduce((a, s) => a + s.revenue, 0);
+
+  return (
+    <>
+      <SectionRule
+        label={t("ov.salesBySource")}
+        note={
+          top
+            ? t("sales.headline", {
+                pct: fmtPct(top.dealSharePct, 1),
+                source: tSource(top.source),
+              })
+            : undefined
+        }
+      />
+
+      <div className="grid grid-cols-1 gap-3 lg:grid-cols-3">
+        <ChartFrame
+          className="lg:col-span-2"
+          title={t("ov.salesBySource")}
+          hint={t("ov.salesBySourceHint")}
+          actions={
+            <Link
+              to="/sales"
+              className="text-xs text-muted-foreground underline underline-offset-4 hover:text-foreground"
+            >
+              {t("ov.openSales")}
+            </Link>
+          }
+          table={{
+            columns: [
+              { key: "source", header: t("sales.source") },
+              { key: "deals", header: t("sales.wonDeals"), numeric: true },
+              { key: "share", header: t("sales.share"), numeric: true },
+              { key: "revenue", header: t("sales.revenue"), numeric: true },
+            ],
+            rows: wonBySource.map((s) => ({
+              source: tSource(s.source),
+              deals: fmtInt(s.deals),
+              share: fmtPct(s.dealSharePct, 1),
+              revenue: fmtSom(s.revenue),
+            })),
+          }}
+          empty={slices.length ? undefined : t("sales.noWon")}
+        >
+          <ShareBar data={slices} format={(v) => fmtInt(v)} />
+        </ChartFrame>
+
+        <Panel>
+          <PanelHeader title={t("ov.topSources")} hint={t("ov.topSourcesHint")} />
+          <ul className="mt-3">
+            {winRates.slice(0, 4).map((s) => (
+              <StatRow
+                key={s.source}
+                label={s.label}
+                value={fmtPct(s.rate, 1)}
+                swatch={palette[s.source] ?? SERIES[0]}
+              />
+            ))}
+            <StatRow label={t("sales.wonDeals")} value={fmtInt(won.length)} />
+            <StatRow label={t("sales.wonRevenue")} value={fmtSom(wonRevenue)} />
+          </ul>
+        </Panel>
+      </div>
+    </>
   );
 }

@@ -9,53 +9,24 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as OlxRouteImport } from './routes/olx'
-import { Route as MetaAdsRouteImport } from './routes/meta-ads'
-import { Route as McpRouteImport } from './routes/mcp'
-import { Route as InstagramRouteImport } from './routes/instagram'
-import { Route as GoogleAnalyticsRouteImport } from './routes/google-analytics'
-import { Route as GoogleAdsRouteImport } from './routes/google-ads'
-import { Route as FacebookRouteImport } from './routes/facebook'
-import { Route as AuthRouteImport } from './routes/auth'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } from './routes/[.well-known]/oauth-protected-resource'
+import { Route as AuthRouteImport } from './routes/auth'
+import { Route as FacebookRouteImport } from './routes/facebook'
+import { Route as GoogleAdsRouteImport } from './routes/google-ads'
+import { Route as GoogleAnalyticsRouteImport } from './routes/google-analytics'
+import { Route as InstagramRouteImport } from './routes/instagram'
+import { Route as McpRouteImport } from './routes/mcp'
+import { Route as MetaAdsRouteImport } from './routes/meta-ads'
+import { Route as OlxRouteImport } from './routes/olx'
+import { Route as SalesRouteImport } from './routes/sales'
 import { Route as Char91DotmcpChar93ListToolsRouteImport } from './routes/[.mcp]/list-tools'
-import { Route as Char91DotmcpChar93InvokeToolToolRouteImport } from './routes/[.mcp]/invoke-tool/$tool'
+import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } from './routes/[.well-known]/oauth-protected-resource'
 import { Route as DotlovableOauthConsentRouteImport } from './routes/[.]lovable.oauth.consent'
+import { Route as Char91DotmcpChar93InvokeToolToolRouteImport } from './routes/[.mcp]/invoke-tool/$tool'
 
-const OlxRoute = OlxRouteImport.update({
-  id: '/olx',
-  path: '/olx',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const MetaAdsRoute = MetaAdsRouteImport.update({
-  id: '/meta-ads',
-  path: '/meta-ads',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const McpRoute = McpRouteImport.update({
-  id: '/mcp',
-  path: '/mcp',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const InstagramRoute = InstagramRouteImport.update({
-  id: '/instagram',
-  path: '/instagram',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const GoogleAnalyticsRoute = GoogleAnalyticsRouteImport.update({
-  id: '/google-analytics',
-  path: '/google-analytics',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const GoogleAdsRoute = GoogleAdsRouteImport.update({
-  id: '/google-ads',
-  path: '/google-ads',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const FacebookRoute = FacebookRouteImport.update({
-  id: '/facebook',
-  path: '/facebook',
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthRoute = AuthRouteImport.update({
@@ -63,27 +34,56 @@ const AuthRoute = AuthRouteImport.update({
   path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
+const FacebookRoute = FacebookRouteImport.update({
+  id: '/facebook',
+  path: '/facebook',
   getParentRoute: () => rootRouteImport,
 } as any)
-const Char91DotwellKnownChar93OauthProtectedResourceRoute =
-  Char91DotwellKnownChar93OauthProtectedResourceRouteImport.update({
-    id: '/.well-known/oauth-protected-resource',
-    path: '/.well-known/oauth-protected-resource',
-    getParentRoute: () => rootRouteImport,
-  } as any)
+const GoogleAdsRoute = GoogleAdsRouteImport.update({
+  id: '/google-ads',
+  path: '/google-ads',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GoogleAnalyticsRoute = GoogleAnalyticsRouteImport.update({
+  id: '/google-analytics',
+  path: '/google-analytics',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const InstagramRoute = InstagramRouteImport.update({
+  id: '/instagram',
+  path: '/instagram',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const McpRoute = McpRouteImport.update({
+  id: '/mcp',
+  path: '/mcp',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MetaAdsRoute = MetaAdsRouteImport.update({
+  id: '/meta-ads',
+  path: '/meta-ads',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OlxRoute = OlxRouteImport.update({
+  id: '/olx',
+  path: '/olx',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SalesRoute = SalesRouteImport.update({
+  id: '/sales',
+  path: '/sales',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const Char91DotmcpChar93ListToolsRoute =
   Char91DotmcpChar93ListToolsRouteImport.update({
     id: '/.mcp/list-tools',
     path: '/.mcp/list-tools',
     getParentRoute: () => rootRouteImport,
   } as any)
-const Char91DotmcpChar93InvokeToolToolRoute =
-  Char91DotmcpChar93InvokeToolToolRouteImport.update({
-    id: '/.mcp/invoke-tool/$tool',
-    path: '/.mcp/invoke-tool/$tool',
+const Char91DotwellKnownChar93OauthProtectedResourceRoute =
+  Char91DotwellKnownChar93OauthProtectedResourceRouteImport.update({
+    id: '/.well-known/oauth-protected-resource',
+    path: '/.well-known/oauth-protected-resource',
     getParentRoute: () => rootRouteImport,
   } as any)
 const DotlovableOauthConsentRoute = DotlovableOauthConsentRouteImport.update({
@@ -91,6 +91,12 @@ const DotlovableOauthConsentRoute = DotlovableOauthConsentRouteImport.update({
   path: '/.lovable/oauth/consent',
   getParentRoute: () => rootRouteImport,
 } as any)
+const Char91DotmcpChar93InvokeToolToolRoute =
+  Char91DotmcpChar93InvokeToolToolRouteImport.update({
+    id: '/.mcp/invoke-tool/$tool',
+    path: '/.mcp/invoke-tool/$tool',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -102,6 +108,7 @@ export interface FileRoutesByFullPath {
   '/mcp': typeof McpRoute
   '/meta-ads': typeof MetaAdsRoute
   '/olx': typeof OlxRoute
+  '/sales': typeof SalesRoute
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
@@ -117,6 +124,7 @@ export interface FileRoutesByTo {
   '/mcp': typeof McpRoute
   '/meta-ads': typeof MetaAdsRoute
   '/olx': typeof OlxRoute
+  '/sales': typeof SalesRoute
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
@@ -133,6 +141,7 @@ export interface FileRoutesById {
   '/mcp': typeof McpRoute
   '/meta-ads': typeof MetaAdsRoute
   '/olx': typeof OlxRoute
+  '/sales': typeof SalesRoute
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
@@ -150,6 +159,7 @@ export interface FileRouteTypes {
     | '/mcp'
     | '/meta-ads'
     | '/olx'
+    | '/sales'
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
     | '/.lovable/oauth/consent'
@@ -165,6 +175,7 @@ export interface FileRouteTypes {
     | '/mcp'
     | '/meta-ads'
     | '/olx'
+    | '/sales'
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
     | '/.lovable/oauth/consent'
@@ -180,6 +191,7 @@ export interface FileRouteTypes {
     | '/mcp'
     | '/meta-ads'
     | '/olx'
+    | '/sales'
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
     | '/.lovable/oauth/consent'
@@ -196,6 +208,7 @@ export interface RootRouteChildren {
   McpRoute: typeof McpRoute
   MetaAdsRoute: typeof MetaAdsRoute
   OlxRoute: typeof OlxRoute
+  SalesRoute: typeof SalesRoute
   Char91DotmcpChar93ListToolsRoute: typeof Char91DotmcpChar93ListToolsRoute
   Char91DotwellKnownChar93OauthProtectedResourceRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   DotlovableOauthConsentRoute: typeof DotlovableOauthConsentRoute
@@ -204,53 +217,11 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/olx': {
-      id: '/olx'
-      path: '/olx'
-      fullPath: '/olx'
-      preLoaderRoute: typeof OlxRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/meta-ads': {
-      id: '/meta-ads'
-      path: '/meta-ads'
-      fullPath: '/meta-ads'
-      preLoaderRoute: typeof MetaAdsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/mcp': {
-      id: '/mcp'
-      path: '/mcp'
-      fullPath: '/mcp'
-      preLoaderRoute: typeof McpRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/instagram': {
-      id: '/instagram'
-      path: '/instagram'
-      fullPath: '/instagram'
-      preLoaderRoute: typeof InstagramRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/google-analytics': {
-      id: '/google-analytics'
-      path: '/google-analytics'
-      fullPath: '/google-analytics'
-      preLoaderRoute: typeof GoogleAnalyticsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/google-ads': {
-      id: '/google-ads'
-      path: '/google-ads'
-      fullPath: '/google-ads'
-      preLoaderRoute: typeof GoogleAdsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/facebook': {
-      id: '/facebook'
-      path: '/facebook'
-      fullPath: '/facebook'
-      preLoaderRoute: typeof FacebookRouteImport
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/auth': {
@@ -260,18 +231,60 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
+    '/facebook': {
+      id: '/facebook'
+      path: '/facebook'
+      fullPath: '/facebook'
+      preLoaderRoute: typeof FacebookRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/.well-known/oauth-protected-resource': {
-      id: '/.well-known/oauth-protected-resource'
-      path: '/.well-known/oauth-protected-resource'
-      fullPath: '/.well-known/oauth-protected-resource'
-      preLoaderRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRouteImport
+    '/google-ads': {
+      id: '/google-ads'
+      path: '/google-ads'
+      fullPath: '/google-ads'
+      preLoaderRoute: typeof GoogleAdsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/google-analytics': {
+      id: '/google-analytics'
+      path: '/google-analytics'
+      fullPath: '/google-analytics'
+      preLoaderRoute: typeof GoogleAnalyticsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/instagram': {
+      id: '/instagram'
+      path: '/instagram'
+      fullPath: '/instagram'
+      preLoaderRoute: typeof InstagramRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/mcp': {
+      id: '/mcp'
+      path: '/mcp'
+      fullPath: '/mcp'
+      preLoaderRoute: typeof McpRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/meta-ads': {
+      id: '/meta-ads'
+      path: '/meta-ads'
+      fullPath: '/meta-ads'
+      preLoaderRoute: typeof MetaAdsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/olx': {
+      id: '/olx'
+      path: '/olx'
+      fullPath: '/olx'
+      preLoaderRoute: typeof OlxRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sales': {
+      id: '/sales'
+      path: '/sales'
+      fullPath: '/sales'
+      preLoaderRoute: typeof SalesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/.mcp/list-tools': {
@@ -281,11 +294,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof Char91DotmcpChar93ListToolsRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/.mcp/invoke-tool/$tool': {
-      id: '/.mcp/invoke-tool/$tool'
-      path: '/.mcp/invoke-tool/$tool'
-      fullPath: '/.mcp/invoke-tool/$tool'
-      preLoaderRoute: typeof Char91DotmcpChar93InvokeToolToolRouteImport
+    '/.well-known/oauth-protected-resource': {
+      id: '/.well-known/oauth-protected-resource'
+      path: '/.well-known/oauth-protected-resource'
+      fullPath: '/.well-known/oauth-protected-resource'
+      preLoaderRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/.lovable/oauth/consent': {
@@ -293,6 +306,13 @@ declare module '@tanstack/react-router' {
       path: '/.lovable/oauth/consent'
       fullPath: '/.lovable/oauth/consent'
       preLoaderRoute: typeof DotlovableOauthConsentRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/.mcp/invoke-tool/$tool': {
+      id: '/.mcp/invoke-tool/$tool'
+      path: '/.mcp/invoke-tool/$tool'
+      fullPath: '/.mcp/invoke-tool/$tool'
+      preLoaderRoute: typeof Char91DotmcpChar93InvokeToolToolRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
@@ -308,6 +328,7 @@ const rootRouteChildren: RootRouteChildren = {
   McpRoute: McpRoute,
   MetaAdsRoute: MetaAdsRoute,
   OlxRoute: OlxRoute,
+  SalesRoute: SalesRoute,
   Char91DotmcpChar93ListToolsRoute: Char91DotmcpChar93ListToolsRoute,
   Char91DotwellKnownChar93OauthProtectedResourceRoute:
     Char91DotwellKnownChar93OauthProtectedResourceRoute,

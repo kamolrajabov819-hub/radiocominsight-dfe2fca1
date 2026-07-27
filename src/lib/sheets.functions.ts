@@ -22,6 +22,7 @@ const TabName = z.enum([
   "Facebook Organic",
   "OLX",
   "Google Analytics",
+  "Sales",
 ]);
 export type TabName = z.infer<typeof TabName>;
 export type Cell = string | number | null;
@@ -34,6 +35,7 @@ export const TABS: TabName[] = [
   "Facebook Organic",
   "OLX",
   "Google Analytics",
+  "Sales",
 ];
 
 export type WorkbookResult = {

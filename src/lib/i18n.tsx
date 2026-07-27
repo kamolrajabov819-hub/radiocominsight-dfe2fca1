@@ -1,6 +1,7 @@
 import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from "react";
 import { createIsomorphicFn } from "@tanstack/react-start";
 import { getCookie } from "@tanstack/react-start/server";
+import { UNSPECIFIED_SOURCE } from "@/lib/parsers";
 
 /* ------------------------------------------------------------------ *
  * Languages
@@ -376,6 +377,66 @@ const en = {
   "olx.uncategorised": "Uncategorised",
   "olx.noMatch": "No listings match this search.",
   "olx.noViews": "No views recorded.",
+
+  /* --- sales --- */
+  "nav.sales": "Sales",
+  "sales.title": "Sales & sources",
+  "sales.subtitle": "Where customers actually come from",
+  "sales.pipeline": "Pipeline",
+  "sales.wonDeals": "Deals won",
+  "sales.wonRevenue": "Revenue won",
+  "sales.openDeals": "Open deals",
+  "sales.openRevenue": "Pipeline value",
+  "sales.winRate": "Win rate",
+  "sales.winRateHint": "Won ÷ all deals",
+  "sales.avgDeal": "Average won deal",
+  "sales.bySource": "Where the customers came from",
+  "sales.shareOfSales": "Share of closed sales by source",
+  "sales.shareOfSalesHint": "Percentage of won deals — 100% is every customer won",
+  "sales.revenueBySource": "Revenue by source",
+  "sales.revenueBySourceHint": "Won deals only, in so'm",
+  "sales.winRateBySource": "Win rate by source",
+  "sales.winRateBySourceHint": "Share of that source's deals that closed",
+  "sales.wonVsOpen": "Won against still open, by source",
+  "sales.wonVsOpenHint": "Deal counts, stacked",
+  "sales.people": "Team & mix",
+  "sales.byManager": "Won deals by salesperson",
+  "sales.byIndustry": "Won deals by industry",
+  "sales.topCompanies": "Largest won deals",
+  "sales.topCompaniesHint": "Top 12 by expected revenue",
+  "sales.allDeals": "Every deal",
+  "sales.dealCount": "{n} deal(s)",
+  "sales.industryCount": "{n} industries",
+  "sales.source": "Source",
+  "sales.deals": "Deals",
+  "sales.revenue": "Revenue",
+  "sales.company": "Company",
+  "sales.stage": "Stage",
+  "sales.manager": "Salesperson",
+  "sales.industry": "Industry",
+  "sales.outcome": "Outcome",
+  "sales.won": "Won",
+  "sales.open": "Open",
+  "sales.lost": "Lost",
+  "sales.other": "Other ({n})",
+  "sales.unspecified": "Not specified",
+  "sales.share": "Share",
+  "sales.opportunity": "Opportunity",
+  "sales.search": "Search company or deal",
+  "sales.headline": "{pct} of every customer won came through {source}",
+  "sales.winRateNote":
+    "Sources with fewer than {n} deals are left out — a one-deal source is either 0% or 100%, which says nothing.",
+  "sales.noWon": "No won deals yet.",
+  "sales.noData": "The Sales tab is empty.",
+  "sales.notQuarterly":
+    "The Sales tab has no date column — it is the full 2026 pipeline, so this page ignores the period filter in the header.",
+  "sales.sourceNote":
+    "Source is taken verbatim from the CRM's «Источник» field. OLX, Radiocom.uz and Instagram are the three that map onto channels tracked elsewhere in this dashboard.",
+  "ov.salesBySource": "Closed sales by source",
+  "ov.salesBySourceHint": "Share of won deals, full-year 2026",
+  "ov.openSales": "Open the sales page",
+  "ov.topSources": "Best-converting sources",
+  "ov.topSourcesHint": "Win rate, sources with at least five deals",
 } as const;
 
 export type Key = keyof typeof en;
@@ -697,6 +758,65 @@ const ru: Record<Key, string> = {
   "olx.uncategorised": "Без категории",
   "olx.noMatch": "По этому запросу объявлений нет.",
   "olx.noViews": "Просмотров нет.",
+
+  "nav.sales": "Продажи",
+  "sales.title": "Продажи и источники",
+  "sales.subtitle": "Откуда на самом деле приходят клиенты",
+  "sales.pipeline": "Воронка сделок",
+  "sales.wonDeals": "Выигранных сделок",
+  "sales.wonRevenue": "Выручка по выигранным",
+  "sales.openDeals": "Открытых сделок",
+  "sales.openRevenue": "Сумма в работе",
+  "sales.winRate": "Доля побед",
+  "sales.winRateHint": "Выиграно ÷ все сделки",
+  "sales.avgDeal": "Средняя выигранная сделка",
+  "sales.bySource": "Откуда пришли клиенты",
+  "sales.shareOfSales": "Доля закрытых продаж по источникам",
+  "sales.shareOfSalesHint": "Процент выигранных сделок — 100% это все привлечённые клиенты",
+  "sales.revenueBySource": "Выручка по источникам",
+  "sales.revenueBySourceHint": "Только выигранные сделки, в сумах",
+  "sales.winRateBySource": "Доля побед по источникам",
+  "sales.winRateBySourceHint": "Какая часть сделок этого источника закрылась",
+  "sales.wonVsOpen": "Выиграно и ещё в работе, по источникам",
+  "sales.wonVsOpenHint": "Количество сделок, с накоплением",
+  "sales.people": "Команда и структура",
+  "sales.byManager": "Выигранные сделки по менеджерам",
+  "sales.byIndustry": "Выигранные сделки по отраслям",
+  "sales.topCompanies": "Крупнейшие выигранные сделки",
+  "sales.topCompaniesHint": "Топ-12 по ожидаемой выручке",
+  "sales.allDeals": "Все сделки",
+  "sales.dealCount": "сделок: {n}",
+  "sales.industryCount": "отраслей: {n}",
+  "sales.source": "Источник",
+  "sales.deals": "Сделки",
+  "sales.revenue": "Выручка",
+  "sales.company": "Компания",
+  "sales.stage": "Этап",
+  "sales.manager": "Менеджер",
+  "sales.industry": "Отрасль",
+  "sales.outcome": "Результат",
+  "sales.won": "Выиграно",
+  "sales.open": "В работе",
+  "sales.lost": "Проиграно",
+  "sales.other": "Прочее ({n})",
+  "sales.unspecified": "Не указан",
+  "sales.share": "Доля",
+  "sales.opportunity": "Возможность",
+  "sales.search": "Поиск по компании или сделке",
+  "sales.headline": "{pct} всех привлечённых клиентов пришли через {source}",
+  "sales.winRateNote":
+    "Источники с числом сделок меньше {n} не показаны — при одной сделке доля побед равна 0% или 100%, и это ни о чём не говорит.",
+  "sales.noWon": "Выигранных сделок пока нет.",
+  "sales.noData": "Вкладка Sales пуста.",
+  "sales.notQuarterly":
+    "Во вкладке Sales нет столбца с датой — это вся воронка за 2026 год, поэтому фильтр периода на этой странице не применяется.",
+  "sales.sourceNote":
+    "Источник берётся напрямую из поля CRM «Источник». OLX, Radiocom.uz и Instagram — три источника, которые совпадают с каналами из остальной части дашборда.",
+  "ov.salesBySource": "Закрытые продажи по источникам",
+  "ov.salesBySourceHint": "Доля выигранных сделок, весь 2026 год",
+  "ov.openSales": "Открыть страницу продаж",
+  "ov.topSources": "Источники с лучшей конверсией",
+  "ov.topSourcesHint": "Доля побед, источники минимум с пятью сделками",
 };
 
 const uz: Record<Key, string> = {
@@ -1016,6 +1136,65 @@ const uz: Record<Key, string> = {
   "olx.uncategorised": "Kategoriyasiz",
   "olx.noMatch": "Bu so'rov bo'yicha e'lonlar yo'q.",
   "olx.noViews": "Ko'rishlar yo'q.",
+
+  "nav.sales": "Sotuvlar",
+  "sales.title": "Sotuvlar va manbalar",
+  "sales.subtitle": "Mijozlar aslida qayerdan keladi",
+  "sales.pipeline": "Bitimlar voronkasi",
+  "sales.wonDeals": "Yutilgan bitimlar",
+  "sales.wonRevenue": "Yutilganlardan tushum",
+  "sales.openDeals": "Ochiq bitimlar",
+  "sales.openRevenue": "Ishdagi summa",
+  "sales.winRate": "Yutuq ulushi",
+  "sales.winRateHint": "Yutilgan ÷ barcha bitimlar",
+  "sales.avgDeal": "O'rtacha yutilgan bitim",
+  "sales.bySource": "Mijozlar qayerdan kelgan",
+  "sales.shareOfSales": "Manbalar bo'yicha yopilgan sotuvlar ulushi",
+  "sales.shareOfSalesHint": "Yutilgan bitimlar foizi — 100% bu barcha jalb qilingan mijozlar",
+  "sales.revenueBySource": "Manbalar bo'yicha tushum",
+  "sales.revenueBySourceHint": "Faqat yutilgan bitimlar, so'mda",
+  "sales.winRateBySource": "Manbalar bo'yicha yutuq ulushi",
+  "sales.winRateBySourceHint": "Shu manbaning qancha bitimi yopilgan",
+  "sales.wonVsOpen": "Yutilgan va hali ishda, manbalar bo'yicha",
+  "sales.wonVsOpenHint": "Bitimlar soni, to'planma",
+  "sales.people": "Jamoa va tarkib",
+  "sales.byManager": "Menejerlar bo'yicha yutilgan bitimlar",
+  "sales.byIndustry": "Tarmoqlar bo'yicha yutilgan bitimlar",
+  "sales.topCompanies": "Eng yirik yutilgan bitimlar",
+  "sales.topCompaniesHint": "Kutilgan tushum bo'yicha top-12",
+  "sales.allDeals": "Barcha bitimlar",
+  "sales.dealCount": "bitimlar: {n}",
+  "sales.industryCount": "{n} ta soha",
+  "sales.source": "Manba",
+  "sales.deals": "Bitimlar",
+  "sales.revenue": "Tushum",
+  "sales.company": "Kompaniya",
+  "sales.stage": "Bosqich",
+  "sales.manager": "Menejer",
+  "sales.industry": "Tarmoq",
+  "sales.outcome": "Natija",
+  "sales.won": "Yutilgan",
+  "sales.open": "Ishda",
+  "sales.lost": "Yutqazilgan",
+  "sales.other": "Boshqa ({n})",
+  "sales.unspecified": "Ko'rsatilmagan",
+  "sales.share": "Ulush",
+  "sales.opportunity": "Imkoniyat",
+  "sales.search": "Kompaniya yoki bitim bo'yicha qidirish",
+  "sales.headline": "Jalb qilingan mijozlarning {pct} qismi {source} orqali keldi",
+  "sales.winRateNote":
+    "Bitimlari {n} tadan kam manbalar ko'rsatilmagan — bitta bitimda g'alaba ulushi 0% yoki 100% bo'ladi va bu hech nima anglatmaydi.",
+  "sales.noWon": "Hozircha yutilgan bitimlar yo'q.",
+  "sales.noData": "Sales varag'i bo'sh.",
+  "sales.notQuarterly":
+    "Sales varag'ida sana ustuni yo'q — bu 2026 yilning to'liq voronkasi, shuning uchun bu sahifada davr filtri qo'llanilmaydi.",
+  "sales.sourceNote":
+    "Manba CRM ning «Источник» maydonidan o'zgarishsiz olinadi. OLX, Radiocom.uz va Instagram — dashboardning qolgan qismidagi kanallarga mos keladigan uchta manba.",
+  "ov.salesBySource": "Manbalar bo'yicha yopilgan sotuvlar",
+  "ov.salesBySourceHint": "Yutilgan bitimlar ulushi, 2026 yil to'liq",
+  "ov.openSales": "Sotuvlar sahifasini ochish",
+  "ov.topSources": "Eng yaxshi konversiyali manbalar",
+  "ov.topSourcesHint": "G'alaba ulushi, kamida beshta bitimi bor manbalar",
 };
 
 const DICT: Record<Lang, Record<Key, string>> = { en, ru, uz };
@@ -1063,6 +1242,20 @@ const METRICS: Record<string, { ru: string; uz: string }> = {
   "Follows and unfollows": { ru: "Подписки и отписки", uz: "Obuna va bekor qilishlar" },
 };
 
+/**
+ * Deal sources as the CRM writes them — Russian, verbatim. Only the ones that
+ * need a word translated appear here; brand names (OLX, Instagram,
+ * Radiocom.uz, Yandex-Market) read the same in all three languages.
+ */
+const SOURCES: Record<string, { en: string; uz: string }> = {
+  "Прямые продажи": { en: "Direct sales", uz: "To'g'ridan-to'g'ri sotuv" },
+  Биржа: { en: "Tender exchange", uz: "Birja" },
+  Дилеры: { en: "Dealers", uz: "Dilerlar" },
+  Объезд: { en: "Field visits", uz: "Dala tashriflari" },
+  Обзвон: { en: "Call round", uz: "Qo'ng'iroqlar" },
+  "холодные звонки": { en: "Cold calls", uz: "Sovuq qo'ng'iroqlar" },
+};
+
 /* ------------------------------------------------------------------ *
  * Provider
  * ------------------------------------------------------------------ */
@@ -1075,6 +1268,8 @@ type Ctx = {
   t: Translate;
   /** Translates a metric label that came from the spreadsheet. */
   tMetric: (name: string) => string;
+  /** Translates a CRM deal source, including the blank-cell sentinel. */
+  tSource: (name: string) => string;
 };
 
 const I18nCtx = createContext<Ctx | null>(null);
@@ -1104,7 +1299,12 @@ export function LanguageProvider({ initial, children }: { initial: Lang; childre
       if (lang === "en") return name;
       return METRICS[name]?.[lang] ?? name;
     };
-    return { lang, setLang, t, tMetric };
+    const tSource = (name: string) => {
+      if (!name || name === UNSPECIFIED_SOURCE) return t("sales.unspecified");
+      if (lang === "ru") return name;
+      return SOURCES[name]?.[lang] ?? name;
+    };
+    return { lang, setLang, t, tMetric, tSource };
   }, [lang, setLang]);
 
   return <I18nCtx.Provider value={value}>{children}</I18nCtx.Provider>;
