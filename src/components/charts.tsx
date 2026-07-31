@@ -303,8 +303,13 @@ export function Donut({
       </ResponsiveContainer>
       {(centerValue || centerLabel) && (
         <div className="pointer-events-none absolute inset-0 grid place-items-center text-center">
-          {/* Held to ~40% of the ring so a long label can never spill over it. */}
-          <div className="max-w-[40%]">
+          {/*
+            The hole is sized by the shorter side, which is always the height
+            here — clamping to a percentage of *width* let a long label spill
+            across the ring on wide panels. Half the height sits comfortably
+            inside an inner radius of 58%.
+          */}
+          <div style={{ maxWidth: Math.round(height * 0.5) }}>
             {centerValue && <div className="figure text-xl leading-none">{centerValue}</div>}
             {centerLabel && (
               <div className="eyebrow mt-1.5 line-clamp-2 leading-snug">{centerLabel}</div>

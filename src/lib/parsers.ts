@@ -117,10 +117,18 @@ export function compareQuarters(a: string, b: string) {
 
 type ColMap = Record<string, number>;
 
+/**
+ * Header keys are matched on letters and digits only, punctuation collapsed
+ * to single spaces. The character class has to be Unicode-aware: three tabs
+ * in this workbook (Sales, Google Analytics, OLX) have Cyrillic headers, and
+ * an `[a-z0-9]` class erases them completely — every such header normalises
+ * to "" and drops out of the map, silently taking header-based column
+ * resolution with it.
+ */
 const normKey = (c: Cell | undefined) =>
   toStr(c)
     .toLowerCase()
-    .replace(/[^a-z0-9%]+/g, " ")
+    .replace(/[^\p{L}\p{N}%]+/gu, " ")
     .trim();
 
 function headerMap(row: Cell[]): ColMap {
@@ -574,15 +582,18 @@ export const GA_INTENT_LABELS: Record<string, string> = {
   T: "Transactional",
 };
 
-
 /* ------------------------------------------------------------------ *
  * Sales
  *
  * A CRM pipeline export (Russian headers). Two stages are present:
- * "Договор" (contract issued, still open) and "Выиграна" (won). The tab
- * also carries per-stage subtotal rows such as "Договор (387)" and a
- * trailing stray row; both lack a currency, which is what separates a
- * real deal from bookkeeping.
+ * "Договор" (contract issued, «Ожидает» — still open) and "Выиграна"
+ * («Выиграно» — the customer bought).
+ *
+ * The tab is grouped, so each stage is preceded by a subtotal row whose
+ * stage cell reads "Договор (387)" and whose other identity columns are
+ * blank; a trailing blank row closes the sheet. Those are bookkeeping, not
+ * deals, and the totals they carry are what the parser is checked against:
+ * Договор 3,221,026,785.69 and Выиграна 1,075,705,357.23.
  *
  * `Источник` is the acquisition source, and it is the column that ties
  * revenue back to the marketing channels on the rest of the dashboard —
@@ -596,8 +607,14 @@ export type SaleRow = {
   outcome: SaleOutcome;
   /** Verbatim from the sheet; "" when the cell is blank. */
   source: string;
+  /**
+   * Who bought. `Название компании` is blank on roughly half the rows — it
+   * only holds registered entities — so `Контакт`, which is never blank,
+   * is the name to show. `company` keeps the registered name when there is
+   * one, for the rows where the two differ.
+   */
+  customer: string;
   company: string;
-  opportunity: string;
   /** Expected revenue, in UZS. */
   revenue: number;
   manager: string;
@@ -606,8 +623,18 @@ export type SaleRow = {
 };
 
 const SALES_FALLBACK = {
-  stage: 0, probability: 1, currency: 3, outcome: 6,
-  opportunity: 8, revenue: 9, company: 12, source: 13, tag: 14, manager: 28,
+  stage: 0,
+  probability: 1,
+  currency: 3,
+  outcome: 6,
+  opportunity: 8,
+  revenue: 9,
+  contact: 10,
+  contactName: 11,
+  company: 12,
+  source: 13,
+  tag: 14,
+  manager: 28,
 };
 
 function saleOutcome(v: string): SaleOutcome {
@@ -616,6 +643,9 @@ function saleOutcome(v: string): SaleOutcome {
   if (s.includes("проигр") || s.includes("потер") || s.includes("lost")) return "lost";
   return "open";
 }
+
+/** A grouped-export subtotal: 'Договор (387)' with nothing else on the row. */
+const isSubtotalStage = (stage: string) => /\(\s*\d+\s*\)\s*$/.test(stage);
 
 export function parseSales(rows: SheetRows): SaleRow[] {
   if (!rows.length) return [];
@@ -626,27 +656,49 @@ export function parseSales(rows: SheetRows): SaleRow[] {
   for (let i = 1; i < rows.length; i++) {
     const r = rows[i];
     if (!r || !r.length) continue;
-    // Subtotal and stray rows carry no currency.
-    if (!toStr(at(r, ["валюта", "currency"], SALES_FALLBACK.currency))) continue;
+
+    const stage = toStr(at(r, ["этап", "stage"], SALES_FALLBACK.stage));
+    if (isSubtotalStage(stage)) continue;
+
+    // `Контакт` is the only identity column present on every deal row, so a
+    // row without it is the trailing blank, not a deal.
+    const contact = toStr(at(r, ["контакт", "contact"], SALES_FALLBACK.contact));
+    const company = toStr(at(r, ["название компании", "company name"], SALES_FALLBACK.company));
+    if (!contact && !company) continue;
 
     const probability = toNum(at(r, ["вероятность", "probability"], SALES_FALLBACK.probability));
     out.push({
-      stage: toStr(at(r, ["этап", "stage"], SALES_FALLBACK.stage)),
+      stage,
       outcome: saleOutcome(toStr(at(r, ["выиграно потеряно", "won lost"], SALES_FALLBACK.outcome))),
       source: toStr(at(r, ["источник", "source"], SALES_FALLBACK.source)),
-      company: toStr(at(r, ["название компании", "company"], SALES_FALLBACK.company)),
-      opportunity: toStr(at(r, ["возможность", "opportunity"], SALES_FALLBACK.opportunity)),
+      customer:
+        company ||
+        contact ||
+        toStr(at(r, ["имя контакта", "contact name"], SALES_FALLBACK.contactName)),
+      company,
       revenue: toNum(at(r, ["ожидаемый доход", "expected revenue"], SALES_FALLBACK.revenue)),
       manager: toStr(at(r, ["менеджер по продажам", "salesperson"], SALES_FALLBACK.manager)),
       tag: toStr(at(r, ["теги", "tags"], SALES_FALLBACK.tag)),
-      // Stored as a 0-1 fraction on subtotal rows and 0-100 on deal rows.
+      // Whole percents on deal rows, a 0-1 fraction on subtotals.
       probabilityPct: probability <= 1 ? probability * 100 : probability,
     });
   }
   return out;
 }
 
-/** Per-source roll-up. `share` fields are percentages of the slice passed in. */
+/** Case-folded customer identity, for counting people rather than rows. */
+const customerKey = (r: SaleRow) => r.customer.toLowerCase();
+
+/**
+ * Per-source roll-up, counted in deals. `share` fields are percentages of
+ * the slice passed in and sum to exactly 100.
+ *
+ * Deliberately not counted in distinct customers: 89 buyers placed more than
+ * once, and a dozen of them bought through two different sources, so any
+ * per-source customer count needs an attribution rule and stops reconciling
+ * with the sheet's own subtotals. The distinct-buyer figure is reported once,
+ * at the top of the page, via `countCustomers`.
+ */
 export type SourceStat = {
   source: string;
   deals: number;
@@ -673,6 +725,11 @@ export function salesBySource(rows: SaleRow[]): SourceStat[] {
       revenueSharePct: totalRevenue > 0 ? (v.revenue / totalRevenue) * 100 : 0,
     }))
     .sort((a, b) => b.deals - a.deals);
+}
+
+/** Distinct buyers across the rows passed in. */
+export function countCustomers(rows: SaleRow[]): number {
+  return new Set(rows.map(customerKey)).size;
 }
 
 /** Sentinel for a blank source cell; translated at render time. */

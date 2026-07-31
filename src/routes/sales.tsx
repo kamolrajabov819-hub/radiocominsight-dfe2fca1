@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis } from "recharts";
-import { Banknote, Handshake, Hourglass, Percent, Trophy, Wallet } from "lucide-react";
+import { Banknote, Handshake, Hourglass, Percent, Trophy, Users, Wallet } from "lucide-react";
 import { AppShell } from "@/components/app-shell";
 import { StatTile } from "@/components/stat";
 import { ExportButton } from "@/components/export-button";
@@ -25,7 +25,7 @@ import { Input } from "@/components/ui/input";
 import { useData } from "@/lib/data-context";
 import { useI18n } from "@/lib/i18n";
 import { fmtCompact, fmtInt, fmtPct, fmtSom } from "@/lib/metrics";
-import { salesBySource, type SaleRow } from "@/lib/parsers";
+import { countCustomers, salesBySource, type SaleRow } from "@/lib/parsers";
 
 export const Route = createFileRoute("/sales")({
   head: () => ({
@@ -52,6 +52,9 @@ const MAX_SLICES = 5;
 /** Below this a win rate is one deal flipping between 0% and 100%. */
 const MIN_DEALS_FOR_RATE = 5;
 
+/** 52 industries do not fit on an axis; the table twin carries the rest. */
+const MAX_INDUSTRY_BARS = 10;
+
 function SalesPage() {
   const { data } = useData();
   const { t, tSource } = useI18n();
@@ -65,6 +68,7 @@ function SalesPage() {
   const wonRevenue = won.reduce((a, s) => a + s.revenue, 0);
   const openRevenue = open.reduce((a, s) => a + s.revenue, 0);
   const winRate = all.length ? (won.length / all.length) * 100 : 0;
+  const customersWon = useMemo(() => countCustomers(won), [won]);
   const avgWon = won.length ? wonRevenue / won.length : 0;
 
   /** The headline the whole page exists for: won deals, split by source. */
@@ -144,39 +148,26 @@ function SalesPage() {
   const topDeals = [...won]
     .sort((a, b) => b.revenue - a.revenue)
     .slice(0, 12)
-    .map((s) => ({
-      label: shorten(s.company || stripOpportunityPrefix(s.opportunity)),
-      value: s.revenue,
-    }));
+    .map((s) => ({ label: shorten(s.customer), value: s.revenue }));
 
   const rows = useMemo(() => {
     const needle = q.toLowerCase().trim();
     if (!needle) return all;
     return all.filter(
       (s) =>
-        s.company.toLowerCase().includes(needle) ||
-        s.opportunity.toLowerCase().includes(needle) ||
+        s.customer.toLowerCase().includes(needle) ||
         s.source.toLowerCase().includes(needle) ||
-        s.manager.toLowerCase().includes(needle),
+        s.manager.toLowerCase().includes(needle) ||
+        s.tag.toLowerCase().includes(needle),
     );
   }, [all, q]);
 
   const columns: Column<SaleRow>[] = [
     {
-      key: "company",
-      header: t("sales.company"),
-      cell: (s) => <span title={s.company}>{shorten(s.company, 40) || "—"}</span>,
-      sortValue: (s) => s.company,
-    },
-    {
-      key: "opportunity",
-      header: t("sales.opportunity"),
-      cell: (s) => (
-        <span className="text-muted-foreground" title={s.opportunity}>
-          {shorten(stripOpportunityPrefix(s.opportunity), 34) || "—"}
-        </span>
-      ),
-      sortValue: (s) => s.opportunity,
+      key: "customer",
+      header: t("sales.customer"),
+      cell: (s) => <span title={s.customer}>{shorten(s.customer, 46)}</span>,
+      sortValue: (s) => s.customer,
     },
     {
       key: "source",
@@ -233,8 +224,8 @@ function SalesPage() {
       name: "Deals",
       rows: [
         [
-          "Company",
-          "Opportunity",
+          "Customer",
+          "Registered company",
           "Source",
           "Outcome",
           "Stage",
@@ -244,16 +235,9 @@ function SalesPage() {
         ],
         ...all.map(
           (s) =>
-            [
-              s.company,
-              s.opportunity,
-              s.source,
-              s.outcome,
-              s.stage,
-              s.revenue,
-              s.manager,
-              s.tag,
-            ] as (string | number)[],
+            [s.customer, s.company, s.source, s.outcome, s.stage, s.revenue, s.manager, s.tag] as (
+              string | number
+            )[],
         ),
       ],
     },
@@ -271,8 +255,14 @@ function SalesPage() {
         note={t("sales.dealCount", { n: fmtInt(all.length) })}
       />
 
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-3 xl:grid-cols-6">
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4 xl:grid-cols-7">
         <StatTile accent label={t("sales.wonDeals")} value={fmtInt(won.length)} icon={Trophy} />
+        <StatTile
+          label={t("sales.customersWon")}
+          value={fmtInt(customersWon)}
+          sub={t("sales.customersWonHint")}
+          icon={Users}
+        />
         <StatTile
           label={t("sales.wonRevenue")}
           value={fmtCompact(wonRevenue)}
@@ -491,7 +481,10 @@ function SalesPage() {
 
         <ChartFrame
           title={t("sales.byIndustry")}
-          hint={t("sales.industryCount", { n: fmtInt(byIndustry.length) })}
+          hint={t("sales.topOf", {
+            n: Math.min(MAX_INDUSTRY_BARS, byIndustry.length),
+            total: byIndustry.length,
+          })}
           table={{
             columns: [
               { key: "industry", header: t("sales.industry") },
@@ -503,7 +496,7 @@ function SalesPage() {
         >
           <HBarRanking
             data={byIndustry
-              .slice(0, 10)
+              .slice(0, MAX_INDUSTRY_BARS)
               .map((i) => ({ label: shorten(i.industry, 26), value: i.deals }))}
             color={SERIES[2]}
             seriesName={t("sales.wonDeals")}
@@ -577,11 +570,6 @@ function OutcomeChip({ outcome }: { outcome: SaleRow["outcome"] }) {
       {label}
     </span>
   );
-}
-
-/** Every CRM opportunity is named «Возможность …» — the prefix carries nothing. */
-function stripOpportunityPrefix(s: string) {
-  return s.replace(/^Возможность\s+/i, "");
 }
 
 function shorten(s: string, max = 30) {
